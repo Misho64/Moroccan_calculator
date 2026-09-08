@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>محول العملة الشعبية المغربية</title>
+  <style>
+    :root {
+      --primary: #047857;
+      --primary-hover: #065f46;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --focus-ring: rgba(4, 120, 87, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4.2rem 1rem 2rem 1rem;
+      transition: padding-top 0.4s ease;
+    }
+
+    body.bar-closed {
+      padding-top: 2rem;
+    }
+
+    /* الشريط العلوي للأذكار */
+    .dhikr-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 44px;
+      background: linear-gradient(90deg, #064e3b 0%, #047857 50%, #064e3b 100%);
+      color: #fef9c3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0.75rem;
+      z-index: 10005;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease;
+    }
+
+    .dhikr-bar.hide {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .dhikr-ticker-container {
+      flex: 1;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      direction: ltr !important;
+      margin: 0 0.5rem;
+    }
+
+    .dhikr-text {
+      display: inline-block;
+      white-space: nowrap;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #ffffff;
+      direction: rtl;
+      animation: moveLeftToRight 5s linear forwards;
+      will-change: transform;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes moveLeftToRight {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100vw);
+      }
+    }
+
+    .dhikr-cancel-btn {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      backdrop-filter: blur(4px);
+    }
+
+    .dhikr-cancel-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.03);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 540px;
+    }
+
+    /* شريط خيارات التحكم */
+    .top-controls {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .control-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.6rem;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .control-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .btn-toggle-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .toggle-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(4, 120, 87, 0.25);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      color: var(--primary);
+      margin-bottom: 0.4rem;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .converter-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border);
+    }
+
+    .input-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .input-group:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.2s ease;
+      background: #fdfdfd;
+    }
+
+    [dir="rtl"] input[type="text"] {
+      padding-left: 4.8rem;
+      padding-right: 1rem;
+      text-align: right;
+    }
+
+    [dir="rtl"] .badge {
+      left: 0.75rem;
+      right: auto;
+    }
+
+    [dir="ltr"] input[type="text"] {
+      padding-right: 4.8rem;
+      padding-left: 1rem;
+      text-align: left;
+    }
+
+    [dir="ltr"] .badge {
+      right: 0.75rem;
+      left: auto;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+      background: #ffffff;
+    }
+
+    .badge {
+      position: absolute;
+      background: #f1f5f9;
+      color: #475569;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .highlight-mad {
+      border-color: rgba(4, 120, 87, 0.4) !important;
+    }
+
+    .info-box {
+      margin-top: 1.25rem;
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      color: #92400e;
+      line-height: 1.6;
+    }
+
+    [dir="rtl"] .info-box ul {
+      padding-right: 1.2rem;
+      padding-left: 0;
+    }
+
+    [dir="ltr"] .info-box ul {
+      padding-left: 1.2rem;
+      padding-right: 0;
+    }
+
+    .info-box ul {
+      margin-top: 0.4rem;
+    }
+
+    /* بطاقة فتح نافذة المتابعة */
+    .updates-trigger-card {
+      margin-top: 1.25rem;
+      background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 1.1rem 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: 0 8px 20px -4px rgba(4, 120, 87, 0.3);
+      transition: all 0.25s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .updates-trigger-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px -4px rgba(4, 120, 87, 0.4);
+    }
+
+    .trigger-content {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .trigger-icon {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .trigger-text h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.15rem;
+    }
+
+    .trigger-text p {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    .trigger-arrow {
+      font-size: 1.2rem;
+      opacity: 0.85;
+      transition: transform 0.2s ease;
+    }
+
+    [dir="rtl"] .trigger-arrow { transform: rotate(180deg); }
+    [dir="ltr"] .trigger-arrow { transform: rotate(0deg); }
+
+    /* سطر النهاية مع الخط الرصاصي الفاصل */
+    .app-footer {
+      margin-top: 2rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      width: 100%;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      direction: ltr;
+    }
+
+    .app-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+      transition: color 0.15s ease;
+    }
+
+    .app-footer a:hover {
+      text-decoration: underline;
+      color: var(--primary-hover);
+    }
+
+    .version-tag {
+      background: #e2e8f0;
+      color: #475569;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* نافذة المودال */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      z-index: 10020;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      padding: 1.75rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      position: relative;
+      transform: scale(0.92) translateY(10px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 1.2rem;
+      background: #f1f5f9;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    [dir="rtl"] .modal-close-btn { left: 1.2rem; right: auto; }
+    [dir="ltr"] .modal-close-btn { right: 1.2rem; left: auto; }
+
+    .modal-close-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding-top: 0.5rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.3rem;
+      color: #0f172a;
+      margin-bottom: 0.35rem;
+    }
+
+    .modal-header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .channel-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #1e293b;
+      border: 1px solid var(--border);
+      background: #fafafa;
+      transition: all 0.2s ease;
+    }
+
+    .channel-link:hover {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .link-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon-telegram { background: #e0f2fe; color: #0284c7; }
+    .icon-instagram { background: #fce7f3; color: #db2777; }
+    .icon-whatsapp { background: #dcfce7; color: #16a34a; }
+    .icon-whatsapp-user { background: #f0fdf4; color: #059669; border: 1px dashed #86efac; }
+
+    .link-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .link-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.1rem;
+      font-family: system-ui, sans-serif;
+    }
+
+    .link-handle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      direction: ltr;
+      text-align: right;
+    }
+
+    [dir="ltr"] .link-handle {
+      text-align: left;
+    }
+
+    .link-action {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- الشريط العلوي للأذكار -->
+  <div id="top-dhikr-bar" class="dhikr-bar">
+    <div class="dhikr-ticker-container">
+      <span id="dhikr-text" class="dhikr-text"></span>
+    </div>
+    <button type="button" class="dhikr-cancel-btn" onclick="closeDhikrBar()" title="إلغاء">
+      <span id="dhikr-btn-text">إلغاء</span>
+      ✕
+    </button>
+  </div>
+
+  <div class="container">
+    
+    <!-- مربعات التحكم قبل العنوان -->
+    <div class="top-controls">
+      
+      <!-- مربع تغيير اللغة -->
+      <div class="control-box">
+        <span class="control-label" id="lang-title">اللغة</span>
+        <div class="btn-toggle-group">
+          <button type="button" class="toggle-btn active" id="btn-lang-ar" onclick="switchLanguage('ar')">AR</button>
+          <button type="button" class="toggle-btn" id="btn-lang-fr" onclick="switchLanguage('fr')">FR</button>
+        </div>
+      </div>
+
+      <!-- مربع نمط الأرقام (يظهر في العربية فقط) -->
+      <div class="control-box" id="digit-box">
+        <span class="control-label">الأرقام</span>
+        <div class="btn-toggle-group">
+          <button type="button" class="toggle-btn active" id="btn-digit-en" onclick="switchDigitStyle('en')">123</button>
+          <button type="button" class="toggle-btn" id="btn-digit-ar" onclick="switchDigitStyle('ar')">١٢٣</button>
+        </div>
+      </div>
+
+    </div>
+
+    <header>
+      <h1 id="txt-title">حاسبة العملة الشعبية المغربية</h1>
+      <p id="txt-subtitle">اكتب في أي خانة ليتم التحويل التلقائي فوراً</p>
+    </header>
+
+    <div class="converter-card">
+      
+      <!-- الدرهم -->
+      <div class="input-group">
+        <div class="label-row">
+          <label for="mad" id="lbl-mad">الدرهم الرسمي (MAD)</label>
+          <span class="hint" id="hint-mad">العملة الأساسية</span>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="mad" inputmode="decimal" class="highlight-mad" placeholder="0">
+          <span class="badge" id="badge-mad">درهم</span>
+        </div>
+      </div>
+
+      <!-- الريال -->
+      <div class="input-group">
+        <div class="label-row">
+          <label for="rial" id="lbl-rial">الريال الشعبي / الدورو</label>
+          <span class="hint" id="hint-rial">1 درهم = 20 ريال</span>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="rial" inputmode="decimal" placeholder="0">
+          <span class="badge" id="badge-rial">ريال</span>
+        </div>
+      </div>
+
+      <!-- الفرنك / السنتيم -->
+      <div class="input-group">
+        <div class="label-row">
+          <label for="centime" id="lbl-centime">الفرنك / السنتيم</label>
+          <span class="hint" id="hint-centime">1 درهم = 100 فرنك</span>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="centime" inputmode="decimal" placeholder="0">
+          <span class="badge" id="badge-centime">فرنك</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- معلومات توضيحية -->
+    <div class="info-box">
+      <strong id="txt-info-title">قواعد الحساب السريع:</strong>
+      <ul>
+        <li id="txt-info-1"><strong>من ريال إلى درهم:</strong> اقسم المبلغ على <strong>20</strong> لمعرفة القيمة بالدرهم.</li>
+        <li id="txt-info-2"><strong>من فرنك إلى درهم:</strong> اقسم المبلغ على <strong>100</strong>.</li>
+      </ul>
+    </div>
+
+    <!-- بطاقة متابعة آخر الأخبار بالأسفل -->
+    <div class="updates-trigger-card" onclick="openModal()">
+      <div class="trigger-content">
+        <div class="trigger-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </div>
+        <div class="trigger-text">
+          <h4 id="txt-news-title">متابعة آخر أخبار تطبيقاتنا</h4>
+          <p id="txt-news-subtitle">انضم لقنواتنا ليصلك كل جديد وتحديث أولاً بأول</p>
+        </div>
+      </div>
+      <div class="trigger-arrow">➜</div>
+    </div>
+
+    <!-- سطر الحقوق والإصدار في النهاية -->
+    <footer class="app-footer">
+      <span>All rights reserved© to <a href="https://t.me/Gruop64" target="_blank" rel="noopener noreferrer">64Group</a></span>
+      <span class="version-tag">V1.2-(9-9-2026)</span>
+    </footer>
+
+  </div>
+
+  <!-- النافذة المنبثقة المودرن في وسط الشاشة -->
+  <div class="modal-overlay" id="news-modal" onclick="handleBackdropClick(event)">
+    <div class="modal-card">
+      <button type="button" class="modal-close-btn" onclick="closeModal()" aria-label="إغلاق">✕</button>
+
+      <div class="modal-header">
+        <h3 id="modal-title">آخر أخبار تطبيقاتنا</h3>
+        <p id="modal-desc">اختر منصتك المفضلة للمتابعة والتواصل المباشر معنا</p>
+      </div>
+
+      <div class="links-list">
+
+        <!-- 1. Telegram -->
+        <a href="https://t.me/apk6_4" target="_blank" rel="noopener noreferrer" class="channel-link">
+          <div class="link-icon-box icon-telegram">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+            </svg>
+          </div>
+          <div class="link-details">
+            <span class="link-title">Telegram</span>
+            <span class="link-handle">@apk6_4</span>
+          </div>
+          <span class="link-action" id="act-telegram">انضمام</span>
+        </a>
+
+        <!-- 2. Instagram -->
+        <a href="https://Instagram.com/misho_64/" target="_blank" rel="noopener noreferrer" class="channel-link">
+          <div class="link-icon-box icon-instagram">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+          </div>
+          <div class="link-details">
+            <span class="link-title">Instagram</span>
+            <span class="link-handle">@misho_64</span>
+          </div>
+          <span class="link-action" id="act-instagram">متابعة</span>
+        </a>
+
+        <!-- 3. WhatsApp (Direct Chat) -->
+        <a href="https://wa.me/201551179695?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D9%85%D8%AA%D8%A7%D8%A8%D8%B9%D8%A9%20%D8%A2%D8%AE%D8%B1%20%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%D8%A7%D8%AA%D9%83%D9%85" target="_blank" rel="noopener noreferrer" class="channel-link">
+          <div class="link-icon-box icon-whatsapp">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+            </svg>
+          </div>
+          <div class="link-details">
+            <span class="link-title">WhatsApp</span>
+            <span class="link-handle">+20 155 117 9695</span>
+          </div>
+          <span class="link-action" id="act-whatsapp">مراسلة</span>
+        </a>
+
+        <!-- 4. WhatsApp (Username) -->
+        <a href="https://wa.me/misho_64/" target="_blank" rel="noopener noreferrer" class="channel-link">
+          <div class="link-icon-box icon-whatsapp-user">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.08L2 22l5.06-1.33C8.5 21.53 10.19 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-2h2v2zm0-4h-2V7h2v5.5z"/>
+            </svg>
+          </div>
+          <div class="link-details">
+            <span class="link-title">WhatsApp (Username)</span>
+            <span class="link-handle">@misho_64</span>
+          </div>
+          <span class="link-action" id="act-whatsapp-user">فتح الرابط</span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dhikrList = [
+      "أشهد آن لَا إِلَٰهَ إِلَّا ٱللَّٰهُ وآن مُحَمَّدًا رَسُولُ ٱللَّٰهِ ✨",
+      "أستغفر الله العظيم وأتوب إليه 🤍",
+      "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ 🐋❤️"
+    ];
+
+    const randomDhikr = dhikrList[Math.floor(Math.random() * dhikrList.length)];
+    document.getElementById('dhikr-text').textContent = randomDhikr;
+
+    let dhikrTimer = setTimeout(() => {
+      closeDhikrBar();
+    }, 5000);
+
+    function closeDhikrBar() {
+      clearTimeout(dhikrTimer);
+      const bar = document.getElementById('top-dhikr-bar');
+      if (bar) {
+        bar.classList.add('hide');
+        document.body.classList.add('bar-closed');
+      }
+    }
+
+    const translations = {
+      ar: {
+        pageTitle: "محول العملة الشعبية المغربية",
+        langLabel: "اللغة",
+        title: "حاسبة العملة الشعبية المغربية",
+        subtitle: "اكتب في أي خانة ليتم التحويل التلقائي فوراً",
+        lblMad: "الدرهم الرسمي (MAD)",
+        hintMad: "العملة الأساسية",
+        badgeMad: "درهم",
+        lblRial: "الريال الشعبي / الدورو",
+        hintRial: "1 درهم = 20 ريال",
+        badgeRial: "ريال",
+        lblCentime: "الفرنك / السنتيم",
+        hintCentime: "1 درهم = 100 فرنك",
+        badgeCentime: "فرنك",
+        infoTitle: "قواعد الحساب السريع:",
+        info1: "<strong>من ريال إلى درهم:</strong> اقسم المبلغ على <strong>20</strong> لمعرفة القيمة بالدرهم.",
+        info2: "<strong>من فرنك إلى درهم:</strong> اقسم المبلغ على <strong>100</strong>.",
+        newsTitle: "متابعة آخر أخبار تطبيقاتنا",
+        newsSubtitle: "انضم لقنواتنا ليصلك كل جديد وتحديث أولاً بأول",
+        modalTitle: "آخر أخبار تطبيقاتنا",
+        modalDesc: "اختر منصتك المفضلة للمتابعة والتواصل المباشر معنا",
+        dhikrCancel: "إلغاء",
+        actTelegram: "انضمام",
+        actInstagram: "متابعة",
+        actWhatsApp: "مراسلة",
+        actWhatsAppUser: "فتح الرابط"
+      },
+      fr: {
+        pageTitle: "Calculateur de Monnaie Marocaine",
+        langLabel: "Langue",
+        title: "Calculateur de Monnaie Marocaine",
+        subtitle: "Tapez dans n'importe quel champ pour convertir automatiquement",
+        lblMad: "Dirham Officiel (MAD)",
+        hintMad: "Devise officielle",
+        badgeMad: "DH",
+        lblRial: "Rial Traditionnel / Doro",
+        hintRial: "1 DH = 20 Rials",
+        badgeRial: "Rial",
+        lblCentime: "Franc / Centime",
+        hintCentime: "1 DH = 100 Francs",
+        badgeCentime: "Franc",
+        infoTitle: "Règles de conversion rapide :",
+        info1: "<strong>Du Rial au Dirham :</strong> divisez le montant par <strong>20</strong>.",
+        info2: "<strong>Du Franc au Dirham :</strong> divisez le montant par <strong>100</strong>.",
+        newsTitle: "Suivre nos applications",
+        newsSubtitle: "Rejoignez nos réseaux pour recevoir toutes les nouveautés",
+        modalTitle: "Nos Dernières Nouvelles",
+        modalDesc: "Choisissez votre plateforme préférée pour nous suivre",
+        dhikrCancel: "Fermer",
+        actTelegram: "Rejoindre",
+        actInstagram: "Suivre",
+        actWhatsApp: "Discuter",
+        actWhatsAppUser: "Ouvrir"
+      }
+    };
+
+    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+
+    let currentLang = 'ar';
+    let currentDigitStyle = 'en';
+    let currentBaseMad = null;
+
+    const inputs = {
+      mad: document.getElementById('mad'),
+      rial: document.getElementById('rial'),
+      centime: document.getElementById('centime')
+    };
+
+    function parseToNumber(val) {
+      if (!val) return null;
+      let clean = val.toString().trim();
+      clean = clean.replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632);
+      clean = clean.replace(/[٫,]/g, '.');
+      if (clean === "" || isNaN(clean)) return null;
+      return parseFloat(clean);
+    }
+
+    function formatNumber(num) {
+      if (num === null || isNaN(num)) return "";
+      let str = Number(num.toFixed(4)).toString();
+      if (currentLang === 'ar' && currentDigitStyle === 'ar') {
+        str = str.replace(/\d/g, d => arabicDigits[d]).replace(/\./g, '٫');
+      }
+      return str;
+    }
+
+    function calculateAndRender(activeSource = null) {
+      if (currentBaseMad === null) {
+        Object.keys(inputs).forEach(k => inputs[k].value = "");
+        return;
+      }
+
+      if (activeSource !== 'mad') inputs.mad.value = formatNumber(currentBaseMad);
+      if (activeSource !== 'rial') inputs.rial.value = formatNumber(currentBaseMad * 20);
+      if (activeSource !== 'centime') inputs.centime.value = formatNumber(currentBaseMad * 100);
+    }
+
+    function handleInput(source, val) {
+      const num = parseToNumber(val);
+      if (num === null) {
+        currentBaseMad = null;
+        Object.keys(inputs).forEach(k => {
+          if (k !== source) inputs[k].value = "";
+        });
+        return;
+      }
+
+      if (source === 'mad') currentBaseMad = num;
+      else if (source === 'rial') currentBaseMad = num / 20;
+      else if (source === 'centime') currentBaseMad = num / 100;
+
+      calculateAndRender(source);
+    }
+
+    Object.keys(inputs).forEach(key => {
+      inputs[key].addEventListener('input', (e) => handleInput(key, e.target.value));
+    });
+
+    function switchLanguage(lang) {
+      currentLang = lang;
+      const root = document.getElementById('html-root');
+      const digitBox = document.getElementById('digit-box');
+      const t = translations[lang];
+
+      root.setAttribute('lang', lang);
+      root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+      document.title = t.pageTitle;
+
+      document.getElementById('btn-lang-ar').classList.toggle('active', lang === 'ar');
+      document.getElementById('btn-lang-fr').classList.toggle('active', lang === 'fr');
+
+      digitBox.style.display = (lang === 'ar') ? 'inline-flex' : 'none';
+
+      document.getElementById('lang-title').textContent = t.langLabel;
+      document.getElementById('txt-title').textContent = t.title;
+      document.getElementById('txt-subtitle').textContent = t.subtitle;
+      document.getElementById('lbl-mad').textContent = t.lblMad;
+      document.getElementById('hint-mad').textContent = t.hintMad;
+      document.getElementById('badge-mad').textContent = t.badgeMad;
+      document.getElementById('lbl-rial').textContent = t.lblRial;
+      document.getElementById('hint-rial').textContent = t.hintRial;
+      document.getElementById('badge-rial').textContent = t.badgeRial;
+      document.getElementById('lbl-centime').textContent = t.lblCentime;
+      document.getElementById('hint-centime').textContent = t.hintCentime;
+      document.getElementById('badge-centime').textContent = t.badgeCentime;
+      document.getElementById('txt-info-title').textContent = t.infoTitle;
+      document.getElementById('txt-info-1').innerHTML = t.info1;
+      document.getElementById('txt-info-2').innerHTML = t.info2;
+
+      document.getElementById('txt-news-title').textContent = t.newsTitle;
+      document.getElementById('txt-news-subtitle').textContent = t.newsSubtitle;
+      document.getElementById('modal-title').textContent = t.modalTitle;
+      document.getElementById('modal-desc').textContent = t.modalDesc;
+      document.getElementById('dhikr-btn-text').textContent = t.dhikrCancel;
+
+      // تحديث أزرار الإجراءات حسب اللغة
+      document.getElementById('act-telegram').textContent = t.actTelegram;
+      document.getElementById('act-instagram').textContent = t.actInstagram;
+      document.getElementById('act-whatsapp').textContent = t.actWhatsApp;
+      document.getElementById('act-whatsapp-user').textContent = t.actWhatsAppUser;
+
+      calculateAndRender();
+    }
+
+    function switchDigitStyle(style) {
+      currentDigitStyle = style;
+      document.getElementById('btn-digit-en').classList.toggle('active', style === 'en');
+      document.getElementById('btn-digit-ar').classList.toggle('active', style === 'ar');
+      calculateAndRender();
+    }
+
+    const modal = document.getElementById('news-modal');
+
+    function openModal() {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function handleBackdropClick(event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
