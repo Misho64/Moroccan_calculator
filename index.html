@@ -839,20 +839,46 @@
       centime: document.getElementById('centime')
     };
 
+    // معالجة النصوص وحذف فواصل الآلاف للتحويل الرقمي الدقيق
     function parseToNumber(val) {
       if (!val) return null;
       let clean = val.toString().trim();
+      clean = clean.replace(/\s+/g, '');
       clean = clean.replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632);
-      clean = clean.replace(/[٫,]/g, '.');
+      clean = clean.replace(/[٬،]/g, ''); // إزالة فواصل الآلاف العربية
+      clean = clean.replace(/٫/g, '.');   // تحويل الفاصلة العشرية العربية إلى نقطة
+
+      if (clean.includes(',')) {
+        if ((clean.match(/,/g) || []).length > 1 || clean.includes('.')) {
+          clean = clean.replace(/,/g, '');
+        } else {
+          if (/,\d{1,2}$/.test(clean)) {
+            clean = clean.replace(/,/g, '.');
+          } else {
+            clean = clean.replace(/,/g, '');
+          }
+        }
+      }
+
       if (clean === "" || isNaN(clean)) return null;
       return parseFloat(clean);
     }
 
+    // تنسيق الرقم وإضافة فواصل الآلاف بحسب النمط المختار
     function formatNumber(num) {
       if (num === null || isNaN(num)) return "";
-      let str = Number(num.toFixed(4)).toString();
+      let rounded = Number(num.toFixed(4));
+      let parts = rounded.toString().split('.');
+      
+      // إضافة الفاصلة لكل 3 أرقام
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      let str = parts.join('.');
+
+      // في حال تفعيل الأرقام العربية
       if (currentLang === 'ar' && currentDigitStyle === 'ar') {
-        str = str.replace(/\d/g, d => arabicDigits[d]).replace(/\./g, '٫');
+        str = str.replace(/\d/g, d => arabicDigits[d])
+                 .replace(/\./g, '٫')
+                 .replace(/,/g, '٬');
       }
       return str;
     }
@@ -885,8 +911,25 @@
       calculateAndRender(source);
     }
 
+    // ربط الأحداث مع إتاحة إزالة الفواصل عند التركيز وتطبيقها عند الانتهاء
     Object.keys(inputs).forEach(key => {
-      inputs[key].addEventListener('input', (e) => handleInput(key, e.target.value));
+      const input = inputs[key];
+      input.addEventListener('input', (e) => handleInput(key, e.target.value));
+
+      // عند بدء الكتابة: إزالة الفواصل لتعديل الأرقام بسلاسة دون تشويش
+      input.addEventListener('focus', (e) => {
+        let val = e.target.value;
+        if (val) {
+          e.target.value = val.replace(/[,٬]/g, '');
+        }
+      });
+
+      // عند الانتهاء والخروج من الخانة: تطبيق الفواصل فوراً
+      input.addEventListener('blur', () => {
+        if (currentBaseMad !== null) {
+          calculateAndRender(null);
+        }
+      });
     });
 
     function switchLanguage(lang) {
@@ -926,20 +969,19 @@
       document.getElementById('modal-desc').textContent = t.modalDesc;
       document.getElementById('dhikr-btn-text').textContent = t.dhikrCancel;
 
-      // تحديث أزرار الإجراءات حسب اللغة
       document.getElementById('act-telegram').textContent = t.actTelegram;
       document.getElementById('act-instagram').textContent = t.actInstagram;
       document.getElementById('act-whatsapp').textContent = t.actWhatsApp;
       document.getElementById('act-whatsapp-user').textContent = t.actWhatsAppUser;
 
-      calculateAndRender();
+      calculateAndRender(null);
     }
 
     function switchDigitStyle(style) {
       currentDigitStyle = style;
       document.getElementById('btn-digit-en').classList.toggle('active', style === 'en');
       document.getElementById('btn-digit-ar').classList.toggle('active', style === 'ar');
-      calculateAndRender();
+      calculateAndRender(null);
     }
 
     const modal = document.getElementById('news-modal');
