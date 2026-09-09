@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تحديث مطلوب للتطبيق</title>
+  <style>
+    :root {
+      --primary: #047857;
+      --primary-hover: #065f46;
+      --accent: #d97706;
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.85);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top center, #1e293b 0%, #0f172a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+      user-select: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    /* شريط تبديل اللغة بالأعلى */
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.25rem;
+    }
+
+    .lang-switcher {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      display: inline-flex;
+      gap: 3px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.3rem 0.75rem;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    /* كارت التحديث الرئيسي */
+    .update-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.25rem 1.75rem;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .update-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #10b981, #d97706, #10b981);
+    }
+
+    /* أيقونة التحديث المتحركة */
+    .icon-wrapper {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem auto;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.05) 100%);
+      border: 1.5px solid rgba(16, 185, 129, 0.4);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #34d399;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+      50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(16, 185, 129, 0.4); }
+    }
+
+    .tag-badge {
+      display: inline-block;
+      background: rgba(217, 119, 6, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      padding: 0.25rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin-bottom: 0.6rem;
+      color: #ffffff;
+    }
+
+    .description {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    /* قائمة مميزات التحديث الجديد */
+    .changelog-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.75rem;
+      text-align: right;
+    }
+
+    [dir="ltr"] .changelog-box {
+      text-align: left;
+    }
+
+    .changelog-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+
+    .changelog-box ul {
+      list-style: none;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .changelog-box li {
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .changelog-box li:last-child {
+      margin-bottom: 0;
+    }
+
+    .bullet {
+      color: #34d399;
+      font-weight: bold;
+    }
+
+    /* زر التحديث الأساسي */
+    .update-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 1rem 1.5rem;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.4);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .update-btn:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(5, 150, 105, 0.5);
+    }
+
+    /* سطر النهاية والحقوق */
+    .app-footer {
+      margin-top: 1.75rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+      direction: ltr;
+    }
+
+    .app-footer a {
+      color: #10b981;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .app-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- زر تغيير اللغة -->
+    <div class="top-bar">
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="btn-ar" onclick="switchLang('ar')">AR</button>
+        <button class="lang-btn" id="btn-fr" onclick="switchLang('fr')">FR</button>
+      </div>
+    </div>
+
+    <!-- بطاقة التحديث -->
+    <div class="update-card">
+      
+      <!-- أيقونة التحديث -->
+      <div class="icon-wrapper">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </div>
+
+      <span class="tag-badge" id="txt-badge">تحديث إجباري مطلوب</span>
+      <h1 id="txt-title">إصدار جديد متوفر الآن!</h1>
+      <p class="description" id="txt-desc">
+        هذا الإصدار من التطبيق أصبح قديماً ولم يعد مدعوماً. يرجى تنزيل وتثبيت أحدث نسخة للاستمرار في استخدام التطبيق والتمتع بآخر الميزات.
+      </p>
+
+      <!-- ما الجديد في التحديث -->
+      <div class="changelog-box">
+        <span class="changelog-title" id="txt-ch-title">ما الجديد في الإصدار الجديد:</span>
+        <ul>
+          <li><span class="bullet">✓</span> <span id="txt-f1">تحسينات هامة وسرعة أعلى في العمليات الحسابية.</span></li>
+          <li><span class="bullet">✓</span> <span id="txt-f2">إصلاح شامل لجميع الأخطاء السابقة والتوافق مع أحدث الأنظمة.</span></li>
+          <li><span class="bullet">✓</span> <span id="txt-f3">إضافة أدوات وخصائص حصرية جديدة للتطبيق.</span></li>
+        </ul>
+      </div>
+
+      <!-- زر التحميل الرئيسي (يفتح قناتك على تيليجرام لتحميل APK الجديد مباشرة) -->
+      <a href="https://t.me/apk6_4" target="_blank" rel="noopener noreferrer" class="update-btn" id="btn-update">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+        </svg>
+        <span id="btn-text">تحديث التطبيق الآن</span>
+      </a>
+
+    </div>
+
+    <!-- سطر الحقوق -->
+    <footer class="app-footer">
+      <span>All rights reserved© to <a href="https://t.me/Gruop64" target="_blank" rel="noopener noreferrer">64Group</a></span>
+    </footer>
+
+  </div>
+
+  <script>
+    const data = {
+      ar: {
+        badge: "تحديث إجباري مطلوب",
+        title: "إصدار جديد متوفر الآن!",
+        desc: "هذا الإصدار من التطبيق أصبح قديماً ولم يعد مدعوماً. يرجى تنزيل وتثبيت أحدث نسخة للاستمرار في استخدام التطبيق والتمتع بآخر الميزات.",
+        chTitle: "ما الجديد في الإصدار الجديد:",
+        f1: "تحسينات هامة وسرعة أعلى في العمليات الحسابية.",
+        f2: "إصلاح شامل لجميع الأخطاء السابقة والتوافق مع أحدث الأنظمة.",
+        f3: "إضافة أدوات وخصائص حصرية جديدة للتطبيق.",
+        btn: "تحديث التطبيق الآن"
+      },
+      fr: {
+        badge: "Mise à jour obligatoire",
+        title: "Nouvelle version disponible !",
+        desc: "Cette version de l'application est obsolète et n'est plus prise en charge. Veuillez installer la dernière version pour continuer à utiliser l'application.",
+        chTitle: "Nouveautés de cette version :",
+        f1: "Amélioration des performances et calculs plus rapides.",
+        f2: "Correction des bugs et compatibilité système renforcée.",
+        f3: "Nouvelles fonctionnalités exclusives ajoutées.",
+        btn: "Mettre à jour maintenant"
+      }
+    };
+
+    function switchLang(lang) {
+      const root = document.getElementById('html-root');
+      root.setAttribute('lang', lang);
+      root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+      document.getElementById('btn-ar').classList.toggle('active', lang === 'ar');
+      document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
+
+      const t = data[lang];
+      document.getElementById('txt-badge').textContent = t.badge;
+      document.getElementById('txt-title').textContent = t.title;
+      document.getElementById('txt-desc').textContent = t.desc;
+      document.getElementById('txt-ch-title').textContent = t.chTitle;
+      document.getElementById('txt-f1').textContent = t.f1;
+      document.getElementById('txt-f2').textContent = t.f2;
+      document.getElementById('txt-f3').textContent = t.f3;
+      document.getElementById('btn-text').textContent = t.btn;
+    }
+  </script>
+</body>
+</html>
